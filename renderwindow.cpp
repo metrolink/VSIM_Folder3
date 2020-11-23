@@ -123,6 +123,8 @@ void RenderWindow::init()
     temp->init();
     mVisualObjects.push_back(temp);
 
+    //Initialize terrain
+ initTerrain();
     //testing triangle surface class
 //    temp = new TriangleSurface();
 //    temp->init();
@@ -138,42 +140,44 @@ void RenderWindow::init()
     mBall->init();
     mBall->mMatrix.scale(0.25);
     //mBall->mMatrix.rotateX(90);
-    //Her blir ballen sluppet fra 0.25 over bakken, ettersom radiusen er 0.25 så blir det 1.5 (1.25+.25)
-    mBall->mMatrix.setPosition(0.f,10.f,0.f);
+    //Her blir ballen sluppet over bakken
+    mBall->mMatrix.setPosition(0.f,12.f,0.f);
     mBall->startPos = mBall->mMatrix.getPosition();
     mBall->mAcceleration = gsl::vec3{0.f,-9.81f,0.f};
     mVisualObjects.push_back(mBall);
 
-    temp = new RollingBall(6);
-    temp->init();
-    temp->mMatrix.setPosition(0, 5.f, 0);
-    temp->startPos = temp->mMatrix.getPosition();
-    temp->mAcceleration = gsl::vec3{0.f, -9.81f, 0.f};
-    mVisualObjects.push_back(temp);
+    //controllable player
+    mPlayer = new RollingBall(6);
+    mPlayer->init();
+    mPlayer->mMatrix.setPosition(0, 5.f, 0);
+    mPlayer->startPos = mPlayer->mMatrix.getPosition();
+    mPlayer->mAcceleration = gsl::vec3{0.f, -9.81f, 0.f};
+    mVisualObjects.push_back(mPlayer);
 
-    //Curve test
-    temp = new BSplineCurve(mMatrixUniform0, this);
+    //Curve
+    mCurve = new BSplineCurve(mMatrixUniform0, this);
     ////Visualize curve height------------------
-    updateSplineHeight(temp);
+    updateSplineHeight(mCurve);
     ////Visualize end------------------
-    temp->init();
-    trophyPositions = static_cast<BSplineCurve*>(temp)->getTrophyLocations();
-    mVisualObjects.push_back(temp);
+    mCurve->init();
+    trophyPositions = static_cast<BSplineCurve*>(mCurve)->getTrophyLocations();
+    mVisualObjects.push_back(mCurve);
 
     //NPC ball
-    temp = new OctahedronBall{3};
-    temp->init();
-    temp->mMatrix.setPosition(0, 5.f, 0);
-    temp->startPos = temp->mMatrix.getPosition();
-    temp->mAcceleration = gsl::vec3{0.f, -9.81f, 0.f};
-    mVisualObjects.push_back(temp);
+    mNPC = new OctahedronBall{3};
+    mNPC->init();
+    mNPC->mMatrix.setPosition(0, 5.f, 0);
+    mNPC->startPos = mNPC->mMatrix.getPosition();
+    mNPC->mAcceleration = gsl::vec3{0.f, -9.81f, 0.f};
+    mVisualObjects.push_back(mNPC);
 
- initTerrain();
+
 
     //********************** Set up camera **********************
     mCurrentCamera = new Camera();
-    mCurrentCamera->setPosition(gsl::Vector3D(-10.f, -15.5f, -10.f));
-    mCurrentCamera->pitch(-90);
+    mCurrentCamera->setPosition(gsl::Vector3D(30.f, -20.5f, 15.f));
+    mCurrentCamera->yaw(10);
+
 
 
 }
@@ -196,20 +200,14 @@ void RenderWindow::render()
 
     //******** This should be done with a loop!
     {
+
         glUseProgram(mShaderProgram[0]->getProgram());
         glUniformMatrix4fv( vMatrixUniform0, 1, GL_TRUE, mCurrentCamera->mViewMatrix.constData());
         glUniformMatrix4fv( pMatrixUniform0, 1, GL_TRUE, mCurrentCamera->mProjectionMatrix.constData());
         glUniformMatrix4fv( mMatrixUniform0, 1, GL_TRUE, mVisualObjects[0]->mMatrix.constData());
         mVisualObjects[0]->draw();
 
-
-        //Oppgave 2:
-        /*glUseProgram(mShaderProgram[0]->getProgram());
-        glUniformMatrix4fv( vMatrixUniform0, 1, GL_TRUE, mCurrentCamera->mViewMatrix.constData());
-        glUniformMatrix4fv( pMatrixUniform0, 1, GL_TRUE, mCurrentCamera->mProjectionMatrix.constData());
-        glUniformMatrix4fv( mMatrixUniform0, 1, GL_TRUE, mVisualObjects[1]->mMatrix.constData());
-        mVisualObjects[1]->draw();*/
-/*        glUseProgram(mShaderProgram[0]->getProgram());
+        glUseProgram(mShaderProgram[0]->getProgram());
         gsl::Matrix4x4 modelMat{};
         modelMat.setToIdentity();
         glUniformMatrix4fv(mShaderProgram[0]->vMatrixUniform, 1, GL_TRUE, mCurrentCamera->mViewMatrix.constData());
@@ -218,7 +216,15 @@ void RenderWindow::render()
         glBindVertexArray(mTerrainVAO);
         // glDrawArrays(GL_POINTS, 0, mTerrainVertices.size());
         glDrawElements(GL_TRIANGLES, mTerrainTriangles.size() * 3, GL_UNSIGNED_INT, 0);
-*/
+
+        //Oppgave 2:
+        /*glUseProgram(mShaderProgram[0]->getProgram());
+        glUniformMatrix4fv( vMatrixUniform0, 1, GL_TRUE, mCurrentCamera->mViewMatrix.constData());
+        glUniformMatrix4fv( pMatrixUniform0, 1, GL_TRUE, mCurrentCamera->mProjectionMatrix.constData());
+        glUniformMatrix4fv( mMatrixUniform0, 1, GL_TRUE, mVisualObjects[1]->mMatrix.constData());
+        mVisualObjects[1]->draw();*/
+
+
         glUseProgram(mShaderProgram[0]->getProgram());
         moveBall(deltaTime);
         //mVisualObjects[2]->update(deltaTime);
@@ -247,7 +253,6 @@ void RenderWindow::render()
 
 
 
-
     }
 
     moveBallAlongSpline(static_cast<BSplineCurve*>(mVisualObjects[4]), mVisualObjects[5]);
@@ -270,6 +275,7 @@ void RenderWindow::render()
         inputMoveBall(ballDirection::LEFT, deltaTime);
     }
 
+    //Is player < 3 away from trophy?
     checkIfPlayerIsCloseToTrophy();
     //Calculate framerate before
     // checkForGLerrors() because that takes a long time
@@ -478,12 +484,12 @@ void RenderWindow::inputMoveBall(ballDirection direction, float deltaTime)
             playerHeight + 1.f,
             mVisualObjects[3]->mMatrix.getPosition().getZ());
 
-    qDebug() << mVisualObjects[3]->mMatrix.getPosition();
+    //qDebug() << mVisualObjects[3]->mMatrix.getPosition();
 }
 
 void RenderWindow::moveBall(float deltaTime)
 {
-    //std::cout << "bruh";
+
     auto& ball = *mVisualObjects[2];
     ball.velocity += ball.mAcceleration * deltaTime;
     //std::cout << ball.mAcceleration << endl;

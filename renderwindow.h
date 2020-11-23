@@ -96,11 +96,12 @@ private:
     std::vector<Vertex> mTerrainVertices;
     GLuint mTerrainVAO;
     std::vector<Triangle> mTerrainTriangles;
-    //Oppgave 2:
+    //visual objects
     VisualObject* mSurface;
     VisualObject* mNPC;
     VisualObject* mPlayer;
     VisualObject* mBall;
+    VisualObject* mCurve;
 
     float linearPos = 0.f;
     float linearSpeed = 0.3f;

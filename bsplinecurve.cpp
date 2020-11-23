@@ -95,6 +95,7 @@ void BSplineCurve::createDefaultSplineCurve()
 
 
     createClampedKnots(degree, controlPoints.size());
+    qDebug() << controlPoints.size();
 }
 
 void BSplineCurve::addCurveToVertices(int subdivisions)
@@ -113,6 +114,7 @@ void BSplineCurve::addCurveToVertices(int subdivisions)
 
         //qDebug() << i/static_cast<float>(subdivisions);
     }
+    qDebug() << "added lines!";
 
 }
 
@@ -243,9 +245,9 @@ void BSplineCurve::init()
 void BSplineCurve::draw()
 {
     glBindVertexArray( mVAO );
-    glDrawArrays(GL_LINE_STRIP, 0, mVertices.size());
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, mVertices.size());
 
-    /*for (unsigned int i = 0; i < trophies.size(); ++i)
+    for (unsigned int i = 0; i < trophies.size(); ++i)
     {
         if (isTrophyPickedUp[i])
         {
@@ -254,7 +256,7 @@ void BSplineCurve::draw()
         {
             trophies[i]->draw(mMatrixUniformTrophy);
         }
-    }*/
+    }
 }
 
 bool BSplineCurve::getIsTrophyPickedUp(unsigned int index)
