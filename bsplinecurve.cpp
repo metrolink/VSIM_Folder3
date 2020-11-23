@@ -15,10 +15,11 @@ BSplineCurve::BSplineCurve()
 
 BSplineCurve::BSplineCurve(GLint mMatrixUniform, RenderWindow *inRenderWindow)
 {
+    mMatrix.setToIdentity();
     currentRenderWindow = inRenderWindow;
-    trophyPoints.push_back(gsl::Vector3D(7, 2.7f, 1.7f));
-    trophyPoints.push_back(gsl::Vector3D(-11, 4.12f, -15.f));
-    trophyPoints.push_back(gsl::Vector3D(-0, 10.6f, -19));
+    trophyPoints.push_back(gsl::Vector3D(7, 17.7f, 1.7f));
+    trophyPoints.push_back(gsl::Vector3D(-11, 13.12f, -15.f));
+    trophyPoints.push_back(gsl::Vector3D(-0, 30.6f, -19));
 
     mMatrixUniformTrophy = mMatrixUniform;
 
@@ -152,15 +153,15 @@ void BSplineCurve::createTrophies()
 
     trophies.clear(); //Clear before creation
 
-    tempTrophy1->mMatrix.setPosition(7, 2.7f/2.f, 1.7f);
+    tempTrophy1->mMatrix.setPosition(7, 6.7f/2.f, 1.7f);
     trophies.push_back(tempTrophy1);
     qDebug() << "trophy 1 is" << tempTrophy1->mMatrix.getPosition();
 
-    tempTrophy2->mMatrix.setPosition(-11, 8.12f/2.f, -15);
+    tempTrophy2->mMatrix.setPosition(-11, 12.12f/2.f, -15);
     trophies.push_back(tempTrophy2);
     qDebug() << "trophy 2 is" << tempTrophy2->mMatrix.getPosition();
 
-    tempTrophy3->mMatrix.setPosition(0, 10.6f, -19);
+    tempTrophy3->mMatrix.setPosition(0, 17.f, -19);
     trophies.push_back(tempTrophy3);
     qDebug() << "trophy 3 is" << tempTrophy3->mMatrix.getPosition();
 
@@ -245,7 +246,7 @@ void BSplineCurve::init()
 void BSplineCurve::draw()
 {
     glBindVertexArray( mVAO );
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, mVertices.size());
+    glDrawArrays(GL_LINE_STRIP, 0, mVertices.size());
 
     for (unsigned int i = 0; i < trophies.size(); ++i)
     {

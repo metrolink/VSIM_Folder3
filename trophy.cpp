@@ -168,6 +168,7 @@ Trophy::Trophy() {
     mVertices.push_back(v);
     v.set_xyz(0.1,0.8,-0.1); v.set_rgb(0,1,0); v.set_uv(1,1);
     mVertices.push_back(v);
+    mMatrix.setToIdentity();
 }
 
 void Trophy::init() {
