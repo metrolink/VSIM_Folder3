@@ -62,7 +62,7 @@ public:
     float heightAtSpline{0};
     bool goingForward{true};
     float tempTerrainHeight{0.f};
-    void inputMoveBall(ballDirection direction, float deltaTime);
+    void inputMoveBall(ballDirection direction);
 
     //For player movement
     gsl::Vector3D playerCoords;
@@ -94,6 +94,7 @@ private:
 
     std::vector<VisualObject*> mVisualObjects;
     std::vector<Vertex> mTerrainVertices;
+    gsl::Matrix4x4 mTerrainModMat{};
     GLuint mTerrainVAO;
     std::vector<Triangle> mTerrainTriangles;
     //visual objects

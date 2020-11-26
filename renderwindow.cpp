@@ -97,12 +97,12 @@ void RenderWindow::init()
     //NB: hardcoded path to files! You have to change this if you change directories for the project.
     //Qt makes a build-folder besides the project folder. That is why we go down one directory
     // (out of the build-folder) and then up into the project folder.
-    mShaderProgram[0] = new Shader("../GSOpenGL2019/plainvertex.vert", "../GSOpenGL2019/plainfragment.frag");
+    mShaderProgram[0] = new Shader("../VSIM_Folder3/plainvertex.vert", "../VSIM_Folder3/plainfragment.frag");
     qDebug() << "Plain shader program id: " << mShaderProgram[0]->getProgram();
-    mShaderProgram[1]= new Shader("../GSOpenGL2019/texturevertex.vert", "../GSOpenGL2019/texturefragmet.frag");
+    mShaderProgram[1]= new Shader("../VSIM_Folder3/texturevertex.vert", "../VSIM_Folder3/texturefragmet.frag");
     qDebug() << "Texture shader program id: " << mShaderProgram[1]->getProgram();
 
-    mShaderProgram[2] = new Shader("../GSOpenGL2019/NPCVertex.vert", "../GSOpenGL2019/NPCfragment.frag");
+    mShaderProgram[2] = new Shader("../VSIM_Folder3/NPCVertex.vert", "../VSIM_Folder3/NPCfragment.frag");
     qDebug() << "Plain shader program id: " << mShaderProgram[2]->getProgram();
 
     setupPlainShader(0);
@@ -110,7 +110,7 @@ void RenderWindow::init()
 
     //**********************  Texture stuff: **********************
     mTexture[0] = new Texture();
-    mTexture[1] = new Texture("../GSOpenGL2019/Assets/hund.bmp");
+    mTexture[1] = new Texture("../VSIM_Folder3/Assets/hund.bmp");
 
     //Set the textures loaded to a texture unit
     glActiveTexture(GL_TEXTURE0);
@@ -176,7 +176,8 @@ void RenderWindow::init()
     //********************** Set up camera **********************
     mCurrentCamera = new Camera();
     mCurrentCamera->setPosition(gsl::Vector3D(30.f, -20.5f, 15.f));
-    mCurrentCamera->yaw(10);
+    mCurrentCamera->yaw(45);
+    mCurrentCamera->pitch(20);
 
 
 
@@ -208,11 +209,11 @@ void RenderWindow::render()
         mVisualObjects[0]->draw();
 
         glUseProgram(mShaderProgram[0]->getProgram());
-        gsl::Matrix4x4 modelMat{};
-        modelMat.setToIdentity();
+//        gsl::Matrix4x4 modelMat{};
+//        modelMat.setToIdentity();
         glUniformMatrix4fv(mShaderProgram[0]->vMatrixUniform, 1, GL_TRUE, mCurrentCamera->mViewMatrix.constData());
         glUniformMatrix4fv( mShaderProgram[0]->pMatrixUniform, 1, GL_TRUE, mCurrentCamera->mProjectionMatrix.constData());
-        glUniformMatrix4fv( mShaderProgram[0]->mMatrixUniform, 1, GL_TRUE, modelMat.constData());
+        glUniformMatrix4fv( mShaderProgram[0]->mMatrixUniform, 1, GL_TRUE, mTerrainModMat.constData());
         glBindVertexArray(mTerrainVAO);
         // glDrawArrays(GL_POINTS, 0, mTerrainVertices.size());
         glDrawElements(GL_TRIANGLES, mTerrainTriangles.size() * 3, GL_UNSIGNED_INT, 0);
@@ -258,25 +259,13 @@ void RenderWindow::render()
     moveBallAlongSpline(static_cast<BSplineCurve*>(mVisualObjects[4]), mVisualObjects[5]);
 
 
-    if (mInput.W && !mInput.RMB)
-    {
-        inputMoveBall(ballDirection::UP, deltaTime);
-    }
-    if (mInput.S && !mInput.RMB)
-    {
-        inputMoveBall(ballDirection::DOWN, deltaTime);
-    }
-    if (mInput.D && !mInput.RMB)
-    {
-        inputMoveBall(ballDirection::RIGHT, deltaTime);
-    }
-    if (mInput.A && !mInput.RMB)
-    {
-        inputMoveBall(ballDirection::LEFT, deltaTime);
-    }
+
 
     //Is player < 3 away from trophy?
     checkIfPlayerIsCloseToTrophy();
+
+
+
     //Calculate framerate before
     // checkForGLerrors() because that takes a long time
     // and before swapBuffers(), else it will show the vsync time
@@ -442,24 +431,24 @@ void RenderWindow::moveBallAlongSpline(BSplineCurve *curve, VisualObject *object
     //qDebug() << timeCounter;
 }
 
-void RenderWindow::inputMoveBall(ballDirection direction, float deltaTime)
+void RenderWindow::inputMoveBall(ballDirection direction)
 {
     //qDebug() << mVisualObjects[3]->mMatrix.getPosition().getY();
     if (direction == ballDirection::UP)
     {
-        mVisualObjects[3]->mMatrix.translate(gsl::Vector3D(15.f, 0.f, 0.f) * deltaTime);
+        mVisualObjects[3]->mMatrix.translate(gsl::Vector3D(0.2f, 0.f, 0.f));
     }
     if (direction == ballDirection::DOWN)
     {
-        mVisualObjects[3]->mMatrix.translate(gsl::Vector3D(-15.f, 0.f, 0.f) * deltaTime);
+        mVisualObjects[3]->mMatrix.translate(gsl::Vector3D(-0.2f, 0.f, 0.f));
     }
     if (direction == ballDirection::RIGHT)
     {
-        mVisualObjects[3]->mMatrix.translate(gsl::Vector3D(0.f, 0.f, -15.f) * deltaTime);
+        mVisualObjects[3]->mMatrix.translate(gsl::Vector3D(0.f, 0.f, -0.2f));
     }
     if (direction == ballDirection::LEFT)
     {
-        mVisualObjects[3]->mMatrix.translate(gsl::Vector3D(0.f, 0.f, 15.f) * deltaTime);
+        mVisualObjects[3]->mMatrix.translate(gsl::Vector3D(0.f, 0.f, 0.2f));
     }
 
     Triangle* currentTriangle = getBallToPlaneTriangle(gsl::Vector3D(mVisualObjects[3]->mMatrix.getPosition().getX(), 0.f, mVisualObjects[3]->mMatrix.getPosition().getZ()));
@@ -811,8 +800,10 @@ void RenderWindow::initTerrain()
 
 void RenderWindow::constructTerrain()
 {
-    gsl::LASLoader loader{"../GSOpenGL2019/Mountain.las"};
+    gsl::LASLoader loader{"../VSIM_Folder3/Mountain.las"};
 
+    mTerrainModMat.setToIdentity();
+    mTerrainModMat.scale(1.f,terrainHeightScale,1.f);
     bool flipY = true;
 
     gsl::Vector3D min{};
@@ -904,26 +895,23 @@ void RenderWindow::handleInput()
 
 
 
-    //Oppgave 3+4
-    if(mInput.UP){
-        mPlayer->mMatrix.translateZ(0.3f);
-        //mBall->mMatrix.translateZ(0.6f);
-    }
-    if(mInput.DOWN)
+    if (mInput.W && !mInput.RMB)
     {
-        mPlayer->mMatrix.translateZ(-0.3f);
-        //mBall->mMatrix.translateZ(-0.6f);
+        inputMoveBall(ballDirection::UP);
     }
-    if(mInput.LEFT)
+    if (mInput.S && !mInput.RMB)
     {
-        mPlayer->mMatrix.translateX(-0.3f);
-        //mBall->mMatrix.translateX(-0.6f);
+        inputMoveBall(ballDirection::DOWN);
     }
-    if(mInput.RIGHT)
+    if (mInput.D && !mInput.RMB)
     {
-        mPlayer->mMatrix.translateX(0.3f);
-        //mBall->mMatrix.translateX(0.6f);
+        inputMoveBall(ballDirection::RIGHT);
     }
+    if (mInput.A && !mInput.RMB)
+    {
+        inputMoveBall(ballDirection::LEFT);
+    }
+
     if (mInput.LMB)
     {
         mVisualObjects[2]->mAcceleration = gsl::vec3{0.f, -9.81f, 0.f};
